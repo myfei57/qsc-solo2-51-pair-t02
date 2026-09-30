@@ -1,7 +1,7 @@
 """Read-only console handlers."""
 
 from . import probes, routes
-from .http import Request, Response, json_response
+from .http import Request, Response, error_response, json_response
 
 
 def health(console, request: Request) -> Response:
@@ -105,6 +105,36 @@ def version(console, request: Request) -> Response:
     return json_response({"label": console.plant.build().label()})
 
 
+def filter_diagnosis(console, request: Request) -> Response:
+    """Current baseline, open round and newest verdict."""
+    return json_response(console.plant.filter_diagnosis())
+
+
+def filter_verdict(console, request: Request) -> Response:
+    """Newest verdict, or the one for a specific round."""
+    round_id = request.integer("round", 0)
+    return json_response(console.plant.filter_verdict(round_id or None))
+
+
+def filter_rounds(console, request: Request) -> Response:
+    """All diagnostic rounds."""
+    return json_response(console.plant.filter_rounds())
+
+
+def filter_consistency(console, request: Request) -> Response:
+    """Cross-check of verdicts against the audit record."""
+    return json_response(console.plant.filter_consistency())
+
+
+def filter_baseline(console, request: Request) -> Response:
+    """Current baseline, or the frozen one at a specific version."""
+    version = request.integer("version", 0)
+    baseline = console.plant.filter_baseline(version or None)
+    if baseline is None:
+        return error_response(f"no baseline at version {version}", status=404)
+    return json_response(baseline)
+
+
 ROUTE_TABLE = (
     (routes.HEALTH, health),
     (routes.STATUS, status),
@@ -125,4 +155,9 @@ ROUTE_TABLE = (
     (routes.SUMMARY, summary),
     (routes.SELFTEST, selftest),
     (routes.VERSION, version),
+    (routes.FILTER_DIAGNOSIS, filter_diagnosis),
+    (routes.FILTER_VERDICT, filter_verdict),
+    (routes.FILTER_ROUNDS, filter_rounds),
+    (routes.FILTER_CONSISTENCY, filter_consistency),
+    (routes.FILTER_BASELINE, filter_baseline),
 )

@@ -17,10 +17,12 @@ from ..errors import (
     PumpAlreadyStoppedError,
     ResidualAntiscalantError,
     RinseFailedError,
+    RoundNotOpenError,
     StoreError,
     SupplyInterruptedError,
     TransferFailedError,
     UnknownKeyError,
+    UnknownRoundError,
     ValveNotOpenError,
 )
 from . import handlers, operations, routes
@@ -43,9 +45,10 @@ CONFLICT = (
     TransferFailedError,
     RinseFailedError,
     MediaNotReadyError,
+    RoundNotOpenError,
 )
 MALFORMED = (InvalidEfficiencyError, InvalidStagesError)
-MISSING = (UnknownKeyError,)
+MISSING = (UnknownKeyError, UnknownRoundError)
 
 ROUTES: tuple[tuple[str, str, Handler], ...] = (
     *((method, path, handler) for path, handler in handlers.ROUTE_TABLE for method in ("GET",)),
@@ -53,6 +56,10 @@ ROUTES: tuple[tuple[str, str, Handler], ...] = (
     ("POST", routes.SHUTDOWN, operations.shutdown),
     ("POST", routes.SWITCH, operations.switch),
     ("POST", routes.MAINTAIN, operations.maintain),
+    ("POST", routes.FILTER_ROUND, operations.filter_begin_round),
+    ("POST", routes.FILTER_SAMPLE, operations.filter_record_sample),
+    ("POST", routes.FILTER_CLOSE, operations.filter_close_round),
+    ("POST", routes.FILTER_CALIBRATE, operations.filter_calibrate),
 )
 
 

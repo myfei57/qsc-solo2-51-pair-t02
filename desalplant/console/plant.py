@@ -9,6 +9,7 @@ from ..brine.valve import Valve
 from ..chem.doser import Doser
 from ..chem.tank import ChemicalTank
 from ..clock import LogicalClock
+from ..filter.diagnoser import FilterDiagnoser
 from ..filter.media import MediaFilter
 from ..filter.rack import Rack
 from ..flush.rinse import RinseCycle
@@ -76,6 +77,7 @@ class Plant:
         self.product = ProductTank()
         self.level = Level()
         self.brine_stream = BrineStream(concentration=0.6)
+        self.filter_diagnoser = FilterDiagnoser(store, clock, recorder)
 
     # ------------------------------------------------------------- lifecycle
 
@@ -144,6 +146,65 @@ class Plant:
     def pump_differential(self) -> float:
         """Pressure differential over the array's final stage."""
         return differential(self.hp_pump, self.array, dict(LAST_STAGE_READINGS))
+
+    # --------------------------------------------------------- filter diagnosis
+
+    def begin_filter_round(self):
+        """Open a diagnostic round bound to the current baseline version."""
+        return self.filter_diagnoser.begin_round()
+
+    def record_filter_sample(
+        self, round_id: int, flow: float, drop: float, restored: bool = False
+    ):
+        """Post one (flow, drop) reading to an open diagnostic round."""
+        return self.filter_diagnoser.record_sample(round_id, flow, drop, restored)
+
+    def close_filter_round(self, round_id: int):
+        """Close a round and return its immutable verdict."""
+        return self.filter_diagnoser.close_round(round_id)
+
+    def recalibrate_filter(self, **overrides: Any):
+        """Mint a new calibration baseline version."""
+        return self.filter_diagnoser.recalibrate(**overrides)
+
+    def filter_diagnosis(self) -> dict[str, Any]:
+        """Console view: current baseline, open round and newest verdict."""
+        baseline = self.filter_diagnoser.current_baseline()
+        round_ = self.filter_diagnoser.latest_round()
+        verdict = self.filter_diagnoser.latest_verdict()
+        return {
+            "baseline": baseline.to_dict(),
+            "open_round": (
+                round_.to_dict() if round_ is not None and round_.open() else None
+            ),
+            "latest_verdict": verdict.to_dict() if verdict is not None else None,
+        }
+
+    def filter_verdict(self, round_id: int | None = None) -> dict[str, Any] | None:
+        """Newest verdict, or the one for a specific round when requested."""
+        verdict = (
+            self.filter_diagnoser.get_verdict(round_id)
+            if round_id
+            else self.filter_diagnoser.latest_verdict()
+        )
+        return None if verdict is None else verdict.to_dict()
+
+    def filter_rounds(self) -> dict[str, Any]:
+        """All diagnostic rounds, oldest first."""
+        return {"rounds": [round_.to_dict() for round_ in self.filter_diagnoser.rounds()]}
+
+    def filter_consistency(self) -> dict[str, Any]:
+        """Cross-check of the verdict store against the audit record."""
+        return self.filter_diagnoser.audit_consistency()
+
+    def filter_baseline(self, version: int | None = None) -> dict[str, Any] | None:
+        """Current baseline, or the frozen one at a specific version."""
+        baseline = (
+            self.filter_diagnoser.baseline(version)
+            if version
+            else self.filter_diagnoser.current_baseline()
+        )
+        return None if baseline is None else baseline.to_dict()
 
     # --------------------------------------------------------------- reading
 

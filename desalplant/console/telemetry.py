@@ -39,6 +39,7 @@ def telemetry(plant: "Plant") -> Telemetry:
 def diagnostics(plant: "Plant") -> dict[str, Any]:
     """Structural readings used to reason about the line."""
     flow_gate = FlowGate(plant.membrane.min_flow)
+    latest_verdict = plant.filter_diagnoser.latest_verdict()
     return {
         "backwash_pressure_drop": plant.media.pressure_drop(80.0),
         "rack": plant.rack.inspect().to_dict(),
@@ -47,4 +48,5 @@ def diagnostics(plant: "Plant") -> dict[str, Any]:
         "gate_can_open": plant.interlock.can_open(plant.hp_pump.pressure),
         "flow_ready": flow_gate.satisfied(plant.membrane.flow),
         "differential": plant.pump_differential(),
+        "filter_verdict": None if latest_verdict is None else latest_verdict.to_dict(),
     }

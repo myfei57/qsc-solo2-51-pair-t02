@@ -74,6 +74,14 @@ class MediaNotReadyError(ContractError):
     """Raised when filtration is demanded before a media backwash."""
 
 
+class RoundNotOpenError(ContractError):
+    """Raised when a sample is posted to a diagnostic round that already closed."""
+
+
+class UnknownRoundError(ContractError):
+    """Raised when a diagnostic round is referenced but was never opened."""
+
+
 class UnknownKeyError(ContractError):
     """Raised when a committed value is required but the key was never written."""
 
