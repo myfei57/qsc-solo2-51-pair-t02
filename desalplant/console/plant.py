@@ -11,6 +11,7 @@ from ..chem.tank import ChemicalTank
 from ..clock import LogicalClock
 from ..filter.media import MediaFilter
 from ..filter.rack import Rack
+from ..filter.verdict import ResistanceService
 from ..flush.rinse import RinseCycle
 from ..flush.start import Flusher
 from ..intake.feed import Feed
@@ -76,6 +77,7 @@ class Plant:
         self.product = ProductTank()
         self.level = Level()
         self.brine_stream = BrineStream(concentration=0.6)
+        self.filter_resistance = ResistanceService(store, clock, recorder)
 
     # ------------------------------------------------------------- lifecycle
 

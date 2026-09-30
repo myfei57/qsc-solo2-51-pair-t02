@@ -4,6 +4,7 @@ from typing import Any, Callable
 
 from ..errors import (
     AlarmNotActiveError,
+    BaselineError,
     ContractError,
     FeedAlreadyStoppedError,
     FlushNotEffectiveError,
@@ -17,13 +18,14 @@ from ..errors import (
     PumpAlreadyStoppedError,
     ResidualAntiscalantError,
     RinseFailedError,
+    RoundError,
     StoreError,
     SupplyInterruptedError,
     TransferFailedError,
     UnknownKeyError,
     ValveNotOpenError,
 )
-from . import handlers, operations, routes
+from . import filter_verdict, handlers, operations, routes
 from .http import Request, Response, error_response
 
 Handler = Callable[["Console", Request], Response]
@@ -43,6 +45,8 @@ CONFLICT = (
     TransferFailedError,
     RinseFailedError,
     MediaNotReadyError,
+    BaselineError,
+    RoundError,
 )
 MALFORMED = (InvalidEfficiencyError, InvalidStagesError)
 MISSING = (UnknownKeyError,)
@@ -53,6 +57,7 @@ ROUTES: tuple[tuple[str, str, Handler], ...] = (
     ("POST", routes.SHUTDOWN, operations.shutdown),
     ("POST", routes.SWITCH, operations.switch),
     ("POST", routes.MAINTAIN, operations.maintain),
+    *filter_verdict.ROUTE_TABLE,
 )
 
 

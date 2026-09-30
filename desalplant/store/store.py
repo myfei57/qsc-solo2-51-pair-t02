@@ -51,6 +51,13 @@ class Store:
             self._data[key] = value
             self.flush()
 
+    def delete(self, key: str) -> None:
+        """Remove a key when present and flush the document."""
+        with self._lock:
+            if key in self._data:
+                del self._data[key]
+                self.flush()
+
     def get(self, key: str, default: Any = None) -> Any:
         """Read a key, returning ``default`` when it was never written."""
         with self._lock:

@@ -74,6 +74,14 @@ class MediaNotReadyError(ContractError):
     """Raised when filtration is demanded before a media backwash."""
 
 
+class BaselineError(ContractError):
+    """Raised when a resistance baseline or its activation is invalid."""
+
+
+class RoundError(ContractError):
+    """Raised when a sampling round is used against its lifecycle."""
+
+
 class UnknownKeyError(ContractError):
     """Raised when a committed value is required but the key was never written."""
 

@@ -1,5 +1,6 @@
-"""Multi-media filtration: media bed, rack and backwash handling."""
+"""Multi-media filtration: media bed, rack, backwash and resistance verdicts."""
 
+from . import verdict
 from .age import MediaAge
 from .backwash import BackwashCycle, finish_backwash, start_backwash
 from .control import BackwashSchedule, schedule
@@ -19,4 +20,5 @@ __all__ = [
     "finish_backwash",
     "schedule",
     "start_backwash",
+    "verdict",
 ]
